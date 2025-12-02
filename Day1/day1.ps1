@@ -1,10 +1,10 @@
 #Requires -Version 7.0
 
 $RotationSequence = Get-Content -Path "$PSScriptRoot/input.txt"
-$DialMin = 0
-$DialMax = 99
+
 $DialPosition = 50
-$TimesDialAtZero = 0
+$TimesDialStopsAtZero = 0 # First half of puzzle solution.
+$TimesDialAtZero = 0 # Second half of puzzle solution.
 
 foreach ($Rotation in $RotationSequence) {
   $RotationDirection = $Rotation[0]
@@ -14,19 +14,31 @@ foreach ($Rotation in $RotationSequence) {
 
   $Operator = $RotationDirection -eq "L" ? "-" : "+"
   $RotationResult = Invoke-Expression "$DialPosition $Operator $RotationDistance"
+  # Ensure result is positive.
+  $NewDialPosition = ($RotationResult % 100 + 100) % 100
 
-  while ($RotationResult -lt $DialMin) {
-    $RotationResult += 100
+  # Check if zero is crossed during incomplete rotation.
+  if ($RotationDirection -eq "L") {
+    if ($NewDialPosition -gt $DialPosition -and $DialPosition -ne 0) {
+      $TimesDialAtZero++
+    }
   }
-  while ($RotationResult -gt $DialMax) {
-    $RotationResult -= 100
+  else {
+    if ($NewDialPosition -lt $DialPosition -and $NewDialPosition -ne 0) {
+      $TimesDialAtZero++
+    }
   }
 
-  $DialPosition = $RotationResult
+  $DialPosition = $NewDialPosition
 
   if ($DialPosition -eq 0) {
+    $TimesDialStopsAtZero++
     $TimesDialAtZero++
   }
+
+  # Times zero is crossed during complete rotations.
+  $TimesDialAtZero += [Math]::Floor($RotationDistance / 100)
 }
 
-Write-Output "Times dial at zero: $TimesDialAtZero"
+Write-Output "Times dial stops at zero (first half of solution): $TimesDialStopsAtZero"
+Write-Output "Times dial at zero (second half of solution): $TimesDialAtZero"
