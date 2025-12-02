@@ -1,3 +1,5 @@
+#Requires -Version 7.0
+
 $RotationSequence = Get-Content -Path "$PSScriptRoot/input.txt"
 $DialMin = 0
 $DialMax = 99
